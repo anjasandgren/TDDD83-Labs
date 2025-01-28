@@ -18,10 +18,15 @@ class Car(db.Model):
     def __repr__(self):
         return '<Car {}: {} {}'.format(self.id, self.make, self.model)
 
+    def seralize(self):
+        return dict(id=self.id, make=self.make, model=self.model)
+
 @app.route('/cars')
 def cars():
-    car_list = Car.query.all()
-    return jsonify(car_list)
+    cars = Car.query.all()
+    if cars is None:
+        abort(404)
+    return jsonify([car.seralize() for car in cars]), 200
 
 @app.route('/cars/<int:car_id>')
 def show_car_id(car_id):
