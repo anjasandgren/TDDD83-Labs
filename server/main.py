@@ -98,7 +98,14 @@ def show_car_id(car_id):
         if "model" in data : 
             car.model = data['model']
         if "customer_id" in data : 
-            car.customer_id = data['customer_id']
+            customer_list = Customer.query.all()
+            customer_found = False
+            for customer in customer_list:
+                if int(data['customer_id']) == int(customer.id):
+                    car.customer_id = data['customer_id']
+                    customer_found = True
+            if not customer_found:
+                return 'No customer found with the requested Customer ID'
         db.session.commit()
 
         return jsonify([car.seralize()])
@@ -158,6 +165,11 @@ def show_customer_id(customer_id):
     elif request.method == 'DELETE':
         if not customer :
             abort(404)
+
+        # Tar bort relationen till kunden från alla bilar kunden ägde
+        for car in customer.cars :
+            car.customer_id = None
+            db.session.commit()
         
         db.session.delete(customer)
         db.session.commit()
