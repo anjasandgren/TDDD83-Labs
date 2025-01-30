@@ -5,7 +5,7 @@ from flask import abort
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../client', static_url_path='/')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -185,7 +185,10 @@ def show_customers_cars(customer_id):
             return jsonify([car.seralize_without_customer() for car in customer.cars])
         else :
             abort(404)
-            
+
+@app.route("/")
+def client():
+  return app.send_static_file("client.html")
 
 
 if __name__ == "__main__":

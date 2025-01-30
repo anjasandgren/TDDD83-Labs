@@ -1,0 +1,28 @@
+
+.big-light-centered-box {
+    width: 30%;
+    height: 300px;
+    background-color: lightblue;
+    margin: 0 auto;
+    border-radius: 50px;
+}
+
+.opening-hours {
+    display: flex;
+    justify-content: space-between;
+}
+
+.box-title {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    font-size: 40px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.box-text {
+    text-align: left;
+    padding: 0px 100px 0px 100px;
+    display: flex;
+    flex-direction: column;
+}
