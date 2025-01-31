@@ -56,3 +56,20 @@
 .send-button {
     background-color: lightblue;
 }
+
+#show-cars {
+    padding-left: 30px;
+}
+
+h2 {
+    text-align: center;
+    padding-top: 30px;
+}
+
+.horisontial {
+    display: flex;
+}
+
+.car-info-input {
+    height: 25px;
+} 
