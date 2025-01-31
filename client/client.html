@@ -42,8 +42,12 @@
     </script>
 
     <script id="view-cars" type="text/html">
-        <div class="big-light-centered-box">
+        <div style="height: 550px;" class="big-light-centered-box">
             <h2>Cars</h2>
+            <div style="display: flex;"> 
+                <button style="margin:auto;" class="update-list">REFRESH</button>
+                <button style="margin:auto;" class="add-car" data-toggle="modal" data-target="#addModal">ADD</button>
+            </div>
             <div id="show-cars">
             </div>
         </div>

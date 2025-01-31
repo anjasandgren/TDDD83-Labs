@@ -77,7 +77,6 @@ var serverStub = {
      * @instance
      */
     deleteCar: function(id) {
-      console.log(id)
       if (this._cars.some(function(car) { return car.id === id; })) {
         this._cars = this._cars.filter(function(car) { return car.id !== id; });
         return true;
