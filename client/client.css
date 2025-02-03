@@ -1,0 +1,79 @@
+
+.big-light-centered-box {
+    width: 30%;
+    height: 500px;
+    background-color: lightblue;
+    margin: 0 auto;
+    border-radius: 50px;
+    margin-top: 100px;
+}
+
+.box-horisontial {
+    display: flex;
+    padding: 0px 20px 0px 20px;
+}
+
+.opening-hours {
+    display: flex;
+    justify-content: space-between;
+}
+
+.box-title {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    font-size: 40px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.box-text {
+    text-align: left;
+    padding: 0px 100px 0px 100px;
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-box {
+    border-color: black;
+    width: 50%;
+    height: 220px;
+    margin-top: 20px;
+}
+
+.contact-header {
+    padding-top: 30px;
+    text-align: center;
+}
+
+.form {
+    width: 90%;
+    height: 380px;
+    background-color: white;
+    border-radius: 20px;
+    text-align:center;
+}
+
+.send-button {
+    background-color: lightblue;
+}
+
+.save-button {
+    background-color: lightblue;
+}
+
+#show-cars {
+    padding-left: 30px;
+}
+
+h2 {
+    text-align: center;
+    padding-top: 30px;
+}
+
+.horisontial {
+    display: flex;
+}
+
+.car-info-input {
+    height: 25px;
+} 
