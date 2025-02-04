@@ -1,30 +1,33 @@
-//host = window.location.protocol + '//' + location.host;
-host = 'http://localhost:5000';
+function getHost() {
+   return window.location.protocol + '//' + location.host;
+   // return host = 'http://localhost:5000';
+}
 
 let car_list = [];
 let customer_list = [];
-let added_car = {
-   make: '',
-   model: '',
-   customer: {}
-};
 
 $(document).ready(function(){
-   alert("Sidan laddades");
+   // alert("Sidan laddades");
    $(".container-fluid").html($("#view-home").html())
-})
+});
 
-$.get(host + '/cars', function(cars) {
+$.get(getHost() + '/cars', function(cars) {
    car_list = cars;
 });
 
-$.get(host + '/customers', function(customers) {
+$.get(getHost() + '/customers', function(customers) {
    customer_list = customers;
 });
 
-function addCarToDb() {
+function getCar(id, callback) {
+   $.get(getHost() + `/cars/${id}`, function(car) {
+      callback(car);
+   });
+}
+
+function addCar(added_car) {
    $.ajax({
-      url: host + '/cars',
+      url: getHost() + '/cars',
       type: 'POST',
       contentType: 'application/json',
       data: JSON.stringify({
@@ -32,7 +35,46 @@ function addCarToDb() {
          model: added_car.model,
          customer: added_car.customer.id
       }),
-      success: function(added_car) {
+      success: function(response) {
+         console.log('Success:', response.window);
+         added_car.id = response.id;
+         console.log("adding car, old/new id: ", added_car.id, response.id)
+         car_list.push(added_car);
+         loadCarList();
+      },
+      error: function(xhr, status, error) {
+          console.error('Error:', error);
+      }
+   });
+}
+
+function updateCar(id_upd, make_upd, model_upd, customer_id_upd = null) {
+   $.ajax({
+      url: getHost() + `/cars/${id_upd}`,
+      type: 'PUT',
+      contentType: 'application/json',
+      data: JSON.stringify({
+         make: make_upd,
+         model: model_upd,
+         customer: customer_id_upd
+      }),
+      success: function(response) {
+         console.log('Success:', response);
+         let car_to_update = getCarFromId(id_upd);
+         car_to_update.make = make_upd;
+         car_to_update.model = model_upd;
+         car_to_update.customer_id = customer_id_upd || car_to_update.customer_id;
+
+         const carIndex = car_list.findIndex(car => car.id === id_upd);
+         if (carIndex !== -1) {
+            car_list[carIndex] = car_to_update;
+         } else {
+            console.log("Car not found in the list");
+         }
+         loadCarList();
+      },
+      error: function(xhr, status, error) {
+         console.error('Error:', error);
       }
    });
 }
@@ -66,48 +108,8 @@ $(document).on("click", ".send-button", function (e) {
    alert('Name: '+name+'\nEmail: '+email+'\nMessage: '+message);
 });
 
-$(document).on("click", ".update-list", function (e) {
-   loadCarList()
-});
-
 $(document).on("click", ".add-car", function (e) {
-   const addModalHtml = `
-      <div class="modal" id="addModal" tabindex="-1" role="dialog">
-         <div class="modal-dialog" role="document">
-            <div class="modal-content">
-               <div class="modal-header">
-                  <h5 class="modal-title">Add Car</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                     <span aria-hidden="true">&times;</span>
-                  </button>
-               </div>
-               <div class="modal-body">
-                  <div class="horisontial">
-                     <p>Make: &nbsp;</p>
-                     <input type="text" id="make" class="car-info-input" placeholder="Make of the car">
-                  </div>
-                  <div class="horisontial">
-                     <p>Model: &nbsp;</p>
-                     <input type="text" id="model" class="car-info-input" placeholder="Model of the car">
-                  </div>
-                  <p>Fill in the fields below to add a ower to the car (optional)</p>
-                  <div class="horisontial">
-                     <p>Name: &nbsp;</p>
-                     <input type="text" id="name" class="car-info-input" placeholder="Name of the car owner">
-                  </div>
-                  <div class="horisontial">
-                     <p>Email: &nbsp;</p>
-                     <input type="text" id="email" class="car-info-input" placeholder="Email of the car owner">
-                  </div>
-               </div>
-               <div class="modal-footer">
-                  <button type="button" class="save-add-button" data-dismiss="modal" aria-label="Close">Save changes</button>
-               </div>
-            </div>
-         </div>
-      </div>
-   `;
-   $('.container-fluid').append(addModalHtml);
+   createModal('add')
 });
 
 $(document).on("click", ".save-add-button", function (e) {
@@ -115,7 +117,9 @@ $(document).on("click", ".save-add-button", function (e) {
    const input_model = $("#model").val()
    const input_name = $("#name").val()
    const input_email = $("#email").val()
-
+   
+   let added_car = {make: '', model: '', customer: {}}
+   
    if (!(input_make && input_model)) {
       alert("Make and model need to be filled.")
       return;
@@ -147,109 +151,67 @@ $(document).on("click", ".save-add-button", function (e) {
       added_car.make = input_make;
       added_car.model = input_model;
    }
-
-   addCarToCarList();
-   addCarToDb();
-   loadCarList();
-   reset();
+   addCar(added_car);
 });
 
-function reset() {
-   added_car = {
-      make: '',
-      model: '',
-      customer: {}
-   };
-}
+// function updateCarInCarList(id, make, model, customer_id = null) {
+//    let car_to_update = getCarFromId(id);
+//    car_to_update.make = make;
+//    car_to_update.model = model;
+//    car_to_update.customer_id = customer_id || car_to_update.customer_id;
 
-function addCarToCarList() {
-   let newCar = {
-      make: added_car.make,
-      model: added_car.model,
-      customer: added_car.customer
-   }
-   car_list.push(newCar)
-}
+//    const carIndex = car_list.findIndex(car => car.id === id);
+//    if (carIndex !== -1) {
+//       car_list[carIndex] = car_to_update;
+//    } else {
+//       console.log("Car not found in the list");
+//    }
+// }
 
 $(document).on("click", ".edit-button", function (e) {
-   const carId = Number(this.id.slice(10))
-   const car = serverStub.getCar(carId)
-
-   var car_owner = "No customer"
-   if (car.customer) {
-      car_owner = car.customer.name
-   }
-   
-   const editModalHtml = `
-      <div class="modal" id="editModal" tabindex="-1" role="dialog">
-         <div class="modal-dialog" role="document">
-            <div class="modal-content">
-               <div class="modal-header">
-                  <h5 class="modal-title">Edit Car</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                     <span aria-hidden="true">&times;</span>
-                  </button>
-               </div>
-               <div class="modal-body">
-                  <div class="horisontial">
-                     <p>Make: &nbsp;</p>
-                     <input type="text" id="make" class="car-info-input" placeholder="${car.make}">
-                  </div>
-                  <div class="horisontial">
-                     <p>Model: &nbsp;</p>
-                     <input type="text" id="model" class="car-info-input" placeholder="${car.model}">
-                  </div>
-                  <div class="horisontial">
-                     <p>Customer: &nbsp;</p>
-                     <input type="text" id="customer" class="car-info-input" placeholder="${car_owner}">
-                  </div>
-               </div>
-               <div class="modal-footer">
-                  <button type="button" id="saveButton${car.id}" class="save-edit-button" data-dismiss="modal" aria-label="Close">Save changes</button>
-               </div>
-            </div>
-         </div>
-      </div>
-   `;
-   $('.container-fluid').append(editModalHtml);
+   const carId = Number(this.id.slice(10));
+   getCar(carId, function(car) {
+      const car_formatted = car[0];
+      createModal('edit', car_formatted);
+   });
 });
 
 $(document).on("click", ".save-edit-button", function (e) {
    const carId = Number(this.id.slice(10))
-   const car = serverStub.getCar(carId)
+   getCar(carId, function(car) {
+      const input_make = $("#make").val()
+      const input_model = $("#model").val()
+      const input_customer = $("#customer").val()
 
-   const input_make = $("#make").val()
-   const input_model = $("#model").val()
-   const input_customer = $("#customer").val()
+      // if (input_customer) {
+      //    var input_customer_id = NaN
+      //    const customer_list = serverStub.getCustomers()
 
-   if (input_customer) {
-      var input_customer_id = NaN
-      const customer_list = serverStub.getCustomers()
+      //    customer_list.forEach(customer => {
+      //       if (customer.name == input_customer) {
+      //          input_customer_id = customer.id
+      //       }
+      //    });
+      // }
 
-      customer_list.forEach(customer => {
-         if (customer.name == input_customer) {
-            input_customer_id = customer.id
-         }
-      });
-   }
-
-   if (input_make && input_model && input_customer_id) {
-      serverStub.updateCar(carId, input_make, input_model, input_customer_id) //customer är en siffra. Behöver kke loopa igenom customers för att se om kunden finns/addera ny kund?
-   } else if (input_model && input_customer_id) {
-      serverStub.updateCar(carId, car.make, input_model,input_customer_id)
-   } else if (input_make && input_customer_id) {
-      serverStub.updateCar(carId, input_make, car.model, input_customer_id)
-   } else if (input_make && input_model) {
-      serverStub.updateCar(carId, input_make, input_model, car.customer_id)
-   }  else if (input_make) {
-      serverStub.updateCar(carId, input_make, car.model, car.customer_id)
-   } else if (input_model) {
-      serverStub.updateCar(carId, car.make, input_model, car.customer_id)
-   } else if (input_customer_id) {
-      serverStub.updateCar(carId, car.make, car.model, input_customer_id)
-   }
-
-   loadCarList();
+      // if (input_make && input_model && input_customer_id) {
+      //    serverStub.updateCar(carId, input_make, input_model, input_customer_id)
+      // } else if (input_model && input_customer_id) {
+      //    serverStub.updateCar(carId, car.make, input_model,input_customer_id)
+      // } else if (input_make && input_customer_id) {
+      //    serverStub.updateCar(carId, input_make, car.model, input_customer_id)
+      // }
+      if (input_make && input_model) {
+         //serverStub.updateCar(carId, input_make, input_model, car.customer_id)
+         updateCar(carId, input_make, input_model, car.customer ? car.customer.id : null)
+      }  
+      // else if (input_make) {
+      //    serverStub.updateCar(carId, input_make, car.model, car.customer_id)
+      // } else if (input_model) {
+      //    serverStub.updateCar(carId, car.make, input_model, car.customer_id)
+      // } else if (input_customer_id) {
+      //    serverStub.updateCar(carId, car.make, car.model, input_customer_id)
+   })
 });
 
 $(document).on("click", ".delete-button", function (e) {
@@ -262,13 +224,16 @@ function getCustomerFromId(id) {
    return customer_list.find(customer => customer.id == id);
 }
 
+function getCarFromId(id) {
+   const car = car_list.find(car => car.id == id);
+   return car;
+}
+
 function loadCarList(carId = 0) {
    $("#show-cars").empty()
-
    var car_num = 1
    car_list.forEach(car => {
       const car_owner = car.customer?.name ?? "No customer";
-      
       const carHtml = `
          <div>
             <p><strong>Car ${car_num}</strong></p>
@@ -283,3 +248,84 @@ function loadCarList(carId = 0) {
       car_num++
    });
 };
+
+function createModal(modalType, car = {}) {
+   $(".modal").remove();
+   let modalHtml = '';
+
+   if (modalType === "add") {
+      modalHtml = `
+         <div class="modal" id="addModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                  <div class="modal-header">
+                     <h5 class="modal-title">Add Car</h5>
+                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                     </button>
+                  </div>
+                  <div class="modal-body">
+                     <div class="horisontial">
+                        <p>Make: &nbsp;</p>
+                        <input type="text" id="make" class="car-info-input" placeholder="Make of the car">
+                     </div>
+                     <div class="horisontial">
+                        <p>Model: &nbsp;</p>
+                        <input type="text" id="model" class="car-info-input" placeholder="Model of the car">
+                     </div>
+                     <p>Fill in the fields below to add a owner to the car (optional)</p>
+                     <div class="horisontial">
+                        <p>Name: &nbsp;</p>
+                        <input type="text" id="name" class="car-info-input" placeholder="Name of the car owner">
+                     </div>
+                     <div class="horisontial">
+                        <p>Email: &nbsp;</p>
+                        <input type="text" id="email" class="car-info-input" placeholder="Email of the car owner">
+                     </div>
+                  </div>
+                  <div class="modal-footer">
+                     <button type="button" class="save-add-button" data-dismiss="modal" aria-label="Close">Save changes</button>
+                  </div>
+               </div>
+            </div>
+         </div>
+      `;
+
+   } else if (modalType === "edit" && car) {
+      const car_owner = car.customer?.name ?? "No customer";
+      modalHtml = `
+         <div class="modal" id="editModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                  <div class="modal-header">
+                     <h5 class="modal-title">Edit Car</h5>
+                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                     </button>
+                  </div>
+                  <div class="modal-body">
+                     <div class="horisontial">
+                        <p>Make: &nbsp;</p>
+                        <input type="text" id="make" class="car-info-input" placeholder="${car.make}">
+                     </div>
+                     <div class="horisontial">
+                        <p>Model: &nbsp;</p>
+                        <input type="text" id="model" class="car-info-input" placeholder="${car.model}">
+                     </div>
+                     <div class="horisontial">
+                        <p>Customer: &nbsp;</p>
+                        <input type="text" id="customer" class="car-info-input" placeholder="${car_owner}">
+                     </div>
+                  </div>
+                  <div class="modal-footer">
+                     <button type="button" id="saveButton${car.id}" class="save-edit-button" data-dismiss="modal" aria-label="Close">Save changes</button>
+                  </div>
+               </div>
+            </div>
+         </div>
+      `;
+   }
+
+   $('.container-fluid').append(modalHtml);
+   $('#editModal').modal('show');
+}
