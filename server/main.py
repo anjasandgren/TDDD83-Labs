@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 app = Flask(__name__, static_folder='../client', static_url_path='/')
 
-# Aktivera CORS för alla rutter
+# Aktivera CORS
 CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -49,9 +49,6 @@ class Customer(db.Model):
     email = db.Column(db.String, nullable=False)
     cars = db.relationship('Car', backref='customer', lazy=True)
 
-    # def __repr__(self):
-    #     return '<Customer {}: {} {}'.format(self.id, self.name, self.email)
-
     def seralize(self):
         return dict(id=self.id, name=self.name, email=self.email)
 
@@ -69,8 +66,7 @@ def cars():
         added_car = request.get_json(force=True)
         new_make = added_car.get('make')
         new_model = added_car.get('model')
-
-        if added_car.get('customer') :
+        if added_car.get('customer') and added_car.get('customer') != 0:
             new_customer = added_car.get('customer')
             new_car = Car(make=new_make, model=new_model, customer_id=new_customer)
         else:

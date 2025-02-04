@@ -1,9 +1,41 @@
+//host = window.location.protocol + '//' + location.host;
+host = 'http://localhost:5000';
 
+let car_list = [];
+let customer_list = [];
+let added_car = {
+   make: '',
+   model: '',
+   customer: {}
+};
 
 $(document).ready(function(){
    alert("Sidan laddades");
    $(".container-fluid").html($("#view-home").html())
 })
+
+$.get(host + '/cars', function(cars) {
+   car_list = cars;
+});
+
+$.get(host + '/customers', function(customers) {
+   customer_list = customers;
+});
+
+function addCarToDb() {
+   $.ajax({
+      url: host + '/cars',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+         make: added_car.make,
+         model: added_car.model,
+         customer: added_car.customer.id
+      }),
+      success: function(added_car) {
+      }
+   });
+}
 
 $('.nav-link').click(function (e) {
    e.preventDefault();
@@ -84,8 +116,6 @@ $(document).on("click", ".save-add-button", function (e) {
    const input_name = $("#name").val()
    const input_email = $("#email").val()
 
-   const customer_list = serverStub.getCustomers()
-
    if (!(input_make && input_model)) {
       alert("Make and model need to be filled.")
       return;
@@ -105,17 +135,41 @@ $(document).on("click", ".save-add-button", function (e) {
             }
          }
          if (customer_match) {
-            serverStub.addCar(input_make, input_model, customer_match.id)
+            added_car.make = input_make;
+            added_car.model = input_model;
+            added_car.customer = getCustomerFromId(customer_match.id);
          } else {
-            const new_customer = serverStub.addCustomer(input_name, input_email)
-            serverStub.addCar(input_make, input_model, new_customer.id)
+            alert("Customer doesn't exist")
+            return;
          }
       }
    } else if (input_make && input_model) {
-      serverStub.addCar(input_make, input_model)
+      added_car.make = input_make;
+      added_car.model = input_model;
    }
-   loadCarList()
+
+   addCarToCarList();
+   addCarToDb();
+   loadCarList();
+   reset();
 });
+
+function reset() {
+   added_car = {
+      make: '',
+      model: '',
+      customer: {}
+   };
+}
+
+function addCarToCarList() {
+   let newCar = {
+      make: added_car.make,
+      model: added_car.model,
+      customer: added_car.customer
+   }
+   car_list.push(newCar)
+}
 
 $(document).on("click", ".edit-button", function (e) {
    const carId = Number(this.id.slice(10))
@@ -204,18 +258,17 @@ $(document).on("click", ".delete-button", function (e) {
    loadCarList();
 });
 
+function getCustomerFromId(id) {
+   return customer_list.find(customer => customer.id == id);
+}
+
 function loadCarList(carId = 0) {
-   const car_list = serverStub.getCars();
-   const customer_list = serverStub.getCustomers();
    $("#show-cars").empty()
 
    var car_num = 1
    car_list.forEach(car => {
-      var car_owner = "No customer"
-      if (car.customer) {
-         car_owner = car.customer.name
-      }
-
+      const car_owner = car.customer?.name ?? "No customer";
+      
       const carHtml = `
          <div>
             <p><strong>Car ${car_num}</strong></p>
