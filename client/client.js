@@ -47,22 +47,26 @@ function addCar(added_car) {
    });
 }
 
-function updateCar(id_upd, make_upd, model_upd, customer_id_upd = null) {
+function data(make_upd, model_upd, customer_id_upd) {
+   return JSON.stringify({
+      make: make_upd,
+      model: model_upd,
+      customer_id: customer_id_upd
+   })
+}
+
+function updateCar(id_upd, make_upd, model_upd, customer_id_upd) {
    $.ajax({
       url: getHost() + `/cars/${id_upd}`,
       type: 'PUT',
       contentType: 'application/json',
-      data: JSON.stringify({
-         make: make_upd,
-         model: model_upd,
-         customer: customer_id_upd
-      }),
+      data: data(make_upd, model_upd, customer_id_upd),
       success: function(response) {
          console.log('Success:', response);
          let car_to_update = getCarFromId(id_upd);
          car_to_update.make = make_upd;
          car_to_update.model = model_upd;
-         car_to_update.customer_id = customer_id_upd || car_to_update.customer_id;
+         car_to_update.customer = getCustomerFromId(customer_id_upd);
 
          const carIndex = car_list.findIndex(car => car.id === id_upd);
          if (carIndex !== -1) {
@@ -177,39 +181,42 @@ $(document).on("click", ".edit-button", function (e) {
 
 $(document).on("click", ".save-edit-button", function (e) {
    const carId = Number(this.id.slice(10))
-   getCar(carId, function(car) {
+   getCar(carId, function(car_not_formatted) {
+      const car = car_not_formatted[0]
       const input_make = $("#make").val()
       const input_model = $("#model").val()
       const input_customer = $("#customer").val()
 
-      // if (input_customer) {
-      //    var input_customer_id = NaN
-      //    const customer_list = serverStub.getCustomers()
+      if (input_customer) {
+         var input_customer_id = NaN
 
-      //    customer_list.forEach(customer => {
-      //       if (customer.name == input_customer) {
-      //          input_customer_id = customer.id
-      //       }
-      //    });
-      // }
+         customer_list.forEach(customer => {
+            if (customer.name == input_customer) {
+               input_customer_id = customer.id
+               console.log("match cust")
+            }
+         });
 
-      // if (input_make && input_model && input_customer_id) {
-      //    serverStub.updateCar(carId, input_make, input_model, input_customer_id)
-      // } else if (input_model && input_customer_id) {
-      //    serverStub.updateCar(carId, car.make, input_model,input_customer_id)
-      // } else if (input_make && input_customer_id) {
-      //    serverStub.updateCar(carId, input_make, car.model, input_customer_id)
-      // }
-      if (input_make && input_model) {
-         //serverStub.updateCar(carId, input_make, input_model, car.customer_id)
-         updateCar(carId, input_make, input_model, car.customer ? car.customer.id : null)
-      }  
-      // else if (input_make) {
-      //    serverStub.updateCar(carId, input_make, car.model, car.customer_id)
-      // } else if (input_model) {
-      //    serverStub.updateCar(carId, car.make, input_model, car.customer_id)
-      // } else if (input_customer_id) {
-      //    serverStub.updateCar(carId, car.make, car.model, input_customer_id)
+         if (!input_customer_id) {
+            alert("No customer with that name exists")
+         }
+      }
+
+      if (input_make && input_model && input_customer_id) {
+         updateCar(carId, input_make, input_model, input_customer_id)
+      } else if (input_model && input_customer_id) {
+         updateCar(carId, car.make, input_model,input_customer_id)
+      } else if (input_make && input_customer_id) {
+         updateCar(carId, input_make, car.model, input_customer_id)
+      } else if (input_make && input_model) {
+         updateCar(carId, input_make, input_model, car.customer ? car.customer.id : 0)
+      }  else if (input_make) {
+         updateCar(carId, input_make, car.model, car.customer ? car.customer.id : 0)
+      } else if (input_model) {
+         updateCar(carId, car.make, input_model, car.customer ? car.customer.id : 0)
+      } else if (input_customer_id) {
+         updateCar(carId, car.make, car.model, input_customer_id)
+      }
    })
 });
 
@@ -249,7 +256,9 @@ function loadCarList(carId = 0) {
 };
 
 function createModal(modalType, car = {}) {
+   $(".modal").modal('hide');
    $(".modal").remove();
+
    let modalHtml = '';
 
    if (modalType === "add") {

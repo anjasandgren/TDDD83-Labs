@@ -18,13 +18,22 @@ class Car(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=True)
 
     def serialize(self):
-        customer = Customer.query.get(self.customer_id)
-        return dict(
-            id=self.id,
-            make=self.make,
-            model=self.model,
-            customer=customer.serialize() if customer else None
-        )
+        if self.customer_id:
+            customer = Customer.query.get(self.customer_id)
+            return dict(
+                id=self.id,
+                make=self.make,
+                model=self.model,
+                customer=customer.serialize() if customer else None
+            )
+        else:
+            return dict(
+                id=self.id,
+                make=self.make,
+                model=self.model,
+                customer=None
+            )
+
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -77,11 +86,11 @@ def show_car_id(car_id):
 
     elif request.method == 'PUT':
         data  = request.get_json(force=True)
-        if "make" in data : 
+        if "make" in data :
             car.make = data['make']
-        if "model" in data : 
+        if "model" in data :
             car.model = data['model']
-        if "customer_id" in data : 
+        if "customer_id" in data :
                 customer = get_or_abort(Customer, data['customer_id'])
                 car.customer_id = customer.id
         
