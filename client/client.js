@@ -1,6 +1,6 @@
 function getHost() {
-   return window.location.protocol + '//' + location.host;
-   // return host = 'http://localhost:5000';
+   // return window.location.protocol + '//' + location.host;
+   return 'http://localhost:5000';
 }
 
 let car_list = [];
@@ -36,9 +36,8 @@ function addCar(added_car) {
          customer: added_car.customer.id
       }),
       success: function(response) {
-         console.log('Success:', response.window);
+         console.log('Success:', response);
          added_car.id = response.id;
-         console.log("adding car, old/new id: ", added_car.id, response.id)
          car_list.push(added_car);
          loadCarList();
       },

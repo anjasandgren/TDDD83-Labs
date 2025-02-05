@@ -65,7 +65,7 @@ def cars():
         new_car = Car(make=new_make, model=new_model, customer_id=new_customer_id if new_customer_id else None)
         db.session.add(new_car)
         db.session.commit()
-        return jsonify({"message": f"New car added. Make: {new_make}, Model: {new_model}"}), 201
+        return jsonify(new_car.serialize()), 201
 
 
 @app.route('/cars/<int:car_id>',methods=['GET', 'PUT', 'DELETE'])
