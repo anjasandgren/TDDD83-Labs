@@ -90,7 +90,7 @@ def show_car_id(car_id):
             car.make = data['make']
         if "model" in data :
             car.model = data['model']
-        if "customer_id" in data :
+        if "customer_id" in data and data["customer_id"] != 0:
                 customer = get_or_abort(Customer, data['customer_id'])
                 car.customer_id = customer.id
         

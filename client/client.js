@@ -82,6 +82,29 @@ function updateCar(id_upd, make_upd, model_upd, customer_id_upd) {
    });
 }
 
+
+function deleteCar(id) {
+   $.ajax({
+      url: getHost() + `/cars/${id}`,
+      type: 'DELETE',
+      success: function(response) {
+         console.log('Success:', response);
+
+         const carIndex = car_list.findIndex(car => car.id === id);
+         if (carIndex !== -1) {
+            car_list.splice(carIndex, 1);
+         } else {
+            console.log("Car not found in the list");
+         }
+         loadCarList();
+      },
+      error: function(xhr, status, error) {
+         console.error('Error:', error);
+      }
+   });
+}
+
+
 $('.nav-link').click(function (e) {
    e.preventDefault();
 
@@ -157,19 +180,6 @@ $(document).on("click", ".save-add-button", function (e) {
    addCar(added_car);
 });
 
-// function updateCarInCarList(id, make, model, customer_id = null) {
-//    let car_to_update = getCarFromId(id);
-//    car_to_update.make = make;
-//    car_to_update.model = model;
-//    car_to_update.customer_id = customer_id || car_to_update.customer_id;
-
-//    const carIndex = car_list.findIndex(car => car.id === id);
-//    if (carIndex !== -1) {
-//       car_list[carIndex] = car_to_update;
-//    } else {
-//       console.log("Car not found in the list");
-//    }
-// }
 
 $(document).on("click", ".edit-button", function (e) {
    const carId = Number(this.id.slice(10));
@@ -222,8 +232,7 @@ $(document).on("click", ".save-edit-button", function (e) {
 
 $(document).on("click", ".delete-button", function (e) {
    var carId = Number(this.id.slice(12))
-   var carDeleted = serverStub.deleteCar(carId);
-   loadCarList();
+   deleteCar(carId)
 });
 
 function getCustomerFromId(id) {
