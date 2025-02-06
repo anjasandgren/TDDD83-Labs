@@ -19,6 +19,12 @@
             <li class="nav-item">
                 <a class="nav-link" data-view="contact" href="#">Contact</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" data-view="sign-up" href="#">Sign Up</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-view="login" href="#">Login</a>
+            </li>
         </ul>
     </nav>
 
@@ -71,6 +77,47 @@
                         <textarea id="message" name="message" rows="8" placeholder="Write your message here"></textarea>
                         <button class="send-button">SEND</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script id="view-sign-up" type="text/html">
+        <div class="big-light-centered-box" >
+            <h1 class="contact-header">Sign Up</h1>
+            <div style="display: flex; width: 100%; justify-content: center;">
+                <div class="sign-up-form">
+                    <br>
+                    <lable for="name">Name:</lable>
+                    <input type="text" id="name" name="name" placeholder="Write your name here">
+                    <br><br>
+                    <lable for="email">Email:</lable>
+                    <input type="text" id="email" name="email" placeholder="Write your email here">
+                    <br><br>
+                    <lable for="password">Password:</lable>
+                    <input type="text" id="password" name="password" placeholder="Write your password here">
+                    <br><br>
+                    <button class="sign-up-button">SIGN UP</button>
+                    <br><br>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script id="view-login" type="text/html">
+        <div class="big-light-centered-box" >
+            <h1 class="contact-header">Login</h1>
+            <div style="display: flex; width: 100%; justify-content: center;">
+                <div class="sign-up-form">
+                    <br>
+                    <lable for="email">Email:</lable>
+                    <input type="text" id="email" name="email" placeholder="Write your email here">
+                    <br><br>
+                    <lable for="password">Password:</lable>
+                    <input type="text" id="password" name="password" placeholder="Write your password here">
+                    <br><br>
+                    <button class="login-button">LOGIN</button>
+                    <br><br>
                 </div>
             </div>
         </div>
