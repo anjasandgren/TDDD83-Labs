@@ -3,7 +3,7 @@ from flask import Flask, jsonify, abort, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt, generate_password_hash
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 app = Flask(__name__, static_folder='../client', static_url_path='/')
 
@@ -87,7 +87,7 @@ def cars():
         new_model = added_car.get('model')
         new_user_id = added_car.get('user')
 
-        if not new_make or not new_model:  # Ensure make and model are provided
+        if not new_make or not new_model:
             abort(400, description="Make and model are required fields.")
         
         new_car = Car(make=new_make, model=new_model, user_id=new_user_id if new_user_id else None)
@@ -123,6 +123,26 @@ def show_car_id(car_id):
         return '', 200
 
 
+@app.route('/cars/<int:car_id>/booking',methods=['POST', 'DELETE'])
+@jwt_required()
+def book_car(car_id):
+    car = get_or_abort(Car, car_id)
+    user_id = get_jwt_identity()
+
+    if request.method == 'POST':
+        if car.user_id:
+            return jsonify({"success": False, "error": "Car is already booked"}), 400
+        else:
+            car.user_id = user_id
+            db.session.commit()
+            return jsonify({"success": True, "user_id": user_id}), 200
+
+    elif request.method == 'DELETE':
+        car.user_id = None
+        db.session.commit()
+        return jsonify({"success": True, "user_id": user_id}), 200
+
+
 @app.route('/users', methods=['GET', 'POST'])
 @jwt_required()
 def user():
@@ -136,7 +156,7 @@ def user():
         new_email = added_user.get('email')
         new_is_admin = added_user.get('is_admin', False)
 
-        if not new_name or not new_email:  # Ensure name and email are provided
+        if not new_name or not new_email:
             abort(400, description="Name and email are required fields.")
 
         new_user = User(name=new_name, email=new_email, is_admin=new_is_admin)
@@ -218,7 +238,7 @@ def login():
             return jsonify({"error": "Invalid password"}), 401
 
         token = create_access_token(identity=str(user.id))
-
+    
         return jsonify({
             "token": token,
             "user": user.serialize()

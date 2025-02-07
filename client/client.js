@@ -1,23 +1,63 @@
 function getHost() {
-   // return window.location.protocol + '//' + location.host;
-   return 'http://localhost:5000';
+   return window.location.protocol + '//' + location.host;
+   // return 'http://localhost:5000';
 }
 
 let car_list = [];
 let user_list = [];
 
 $(document).ready(function(){
-   // alert("Sidan laddades");
-   $(".container-fluid").html($("#view-home").html())
+   const authData = sessionStorage.getItem('auth');
+   if (!authData) {
+      $(".container-fluid").html($("#view-login").html())
+   } else {
+      $(".container-fluid").html($("#view-home").html())
+      $(".login-link, .sign-up-link, .cars-link, .logout-link").toggleClass("d-none")
+      getCars();
+      getUsers();
+   }
 });
 
-$.get(getHost() + '/cars', function(cars) {
-   car_list = cars;
-});
 
-$.get(getHost() + '/users', function(users) {
-   user_list = users;
-});
+function getCars() {
+   $.ajax({
+      url: getHost() + '/cars',
+      type: 'GET',
+      headers: {
+         'Authorization': sessionStorage.getItem('auth') 
+            ? 'Bearer ' + JSON.parse(sessionStorage.getItem('auth')).token 
+            : ''
+      },
+      success: function(cars) {
+         console.log('Success:', cars);
+         car_list = cars;
+      },
+      error: function(xhr, status, error) {
+         console.error('Error:', error);
+      }
+   });
+}
+
+
+function getUsers() {
+   $.ajax({
+      url: getHost() + '/users',
+      type: 'GET',
+      headers: {
+         'Authorization': sessionStorage.getItem('auth') 
+            ? 'Bearer ' + JSON.parse(sessionStorage.getItem('auth')).token 
+            : ''
+      },
+      success: function(users) {
+         user_list = users;
+         console.log('Användare hämtade:', users);
+      },
+      error: function(xhr, status, error) {
+         console.error('Fel vid hämtning av användare:', error);
+      }
+   });
+}
+
 
 function getCar(id, callback) {
    $.get(getHost() + `/cars/${id}`, function(car) {
@@ -25,10 +65,16 @@ function getCar(id, callback) {
    });
 }
 
+
 function addCar(added_car) {
    $.ajax({
       url: getHost() + '/cars',
       type: 'POST',
+      headers: {
+         'Authorization': sessionStorage.getItem('auth') 
+            ? 'Bearer ' + JSON.parse(sessionStorage.getItem('auth')).token 
+            : ''
+      },
       contentType: 'application/json',
       data: JSON.stringify({
          make: added_car.make,
@@ -47,20 +93,22 @@ function addCar(added_car) {
    });
 }
 
-function data(make_upd, model_upd, user_id_upd) {
-   return JSON.stringify({
-      make: make_upd,
-      model: model_upd,
-      user_id: user_id_upd
-   })
-}
 
 function updateCar(id_upd, make_upd, model_upd, user_id_upd) {
    $.ajax({
       url: getHost() + `/cars/${id_upd}`,
       type: 'PUT',
+      headers: {
+         'Authorization': sessionStorage.getItem('auth') 
+            ? 'Bearer ' + JSON.parse(sessionStorage.getItem('auth')).token 
+            : ''
+      },
       contentType: 'application/json',
-      data: data(make_upd, model_upd, user_id_upd),
+      data: JSON.stringify({
+         make: make_upd,
+         model: model_upd,
+         user_id: user_id_upd
+      }),
       success: function(response) {
          console.log('Success:', response);
          let car_to_update = getCarFromId(id_upd);
@@ -87,6 +135,11 @@ function deleteCar(id) {
    $.ajax({
       url: getHost() + `/cars/${id}`,
       type: 'DELETE',
+      headers: {
+         'Authorization': sessionStorage.getItem('auth') 
+            ? 'Bearer ' + JSON.parse(sessionStorage.getItem('auth')).token 
+            : ''
+      },
       success: function(response) {
          console.log('Success:', response);
 
@@ -105,6 +158,59 @@ function deleteCar(id) {
 }
 
 
+function bookCar(carId) {
+   $.ajax({
+      url: getHost() + `/cars/${carId}/booking`,
+      type: 'POST',
+      headers: {
+         'Authorization': sessionStorage.getItem('auth') 
+            ? 'Bearer ' + JSON.parse(sessionStorage.getItem('auth')).token 
+            : ''
+      },
+      contentType: 'application/json',
+      success: function(response) {
+         console.log('Success:', response);
+         const user = getUserFromId(JSON.parse(sessionStorage.getItem('auth')).user.id)
+         car_list.forEach(car => {
+            if (car.id == carId) {
+               car.user = user;
+            }
+         });
+         loadCarList();
+      },
+      error: function(xhr, status, error) {
+          console.error('Error:', error);
+      }
+   });
+}
+
+
+function unbookCar(carId) {
+   $.ajax({
+      url: getHost() + `/cars/${carId}/booking`,
+      type: 'DELETE',
+      headers: {
+         'Authorization': sessionStorage.getItem('auth') 
+            ? 'Bearer ' + JSON.parse(sessionStorage.getItem('auth')).token 
+            : ''
+      },
+      success: function(response) {
+         console.log('Success:', response);
+         
+         car_list.forEach(car => {
+            if (car.id == carId) {
+               car.user = null;
+            }
+         });
+         loadCarList();
+      },
+      error: function(xhr, status, error) {
+          console.error('Error:', error);
+      }
+   });
+ }
+
+
 function signUp(new_user) {
    $.ajax({
       url: getHost() + '/sign-up',
@@ -117,9 +223,9 @@ function signUp(new_user) {
       }),
       success: function(response) {
          console.log('Success:', response);
+         $(".container-fluid").html($("#view-login").html());
          new_user.id = response.id;
          user_list.push(new_user);
-         $(".container-fluid").html($("#view-home").html())
       },
       error: function(xhr, status, error) {
          console.error('Error:', error);
@@ -127,6 +233,7 @@ function signUp(new_user) {
       }
    });
 }
+
 
 function login(email, password) {
    $.ajax({
@@ -139,7 +246,11 @@ function login(email, password) {
       }),
       success: function(response) {
          console.log('Success:', response);
-         $(".container-fluid").html($("#view-home").html())
+         sessionStorage.setItem('auth', JSON.stringify(response));
+         $(".container-fluid").html($("#view-home").html());
+         $(".login-link, .sign-up-link, .cars-link, .logout-link").toggleClass("d-none")
+         getCars();
+         getUsers();
          loadCarList();
       },
       error: function(xhr, status, error) {
@@ -149,24 +260,30 @@ function login(email, password) {
    });
 }
 
+
 $('.nav-link').click(function (e) {
    e.preventDefault();
 
    const view = $(this).data("view");
 
    if (view === "home") {
-      $(".container-fluid").html($("#view-home").html())
+      $(".container-fluid").html($("#view-home").html());
    } else if (view === "contact") {
-      $(".container-fluid").html($("#view-contact").html())
+      $(".container-fluid").html($("#view-contact").html());
    } else if (view === "opening-hours") {
-      $(".container-fluid").html($("#view-opening-hours").html())
+      $(".container-fluid").html($("#view-opening-hours").html());
    } else if (view === "cars") {
-      $(".container-fluid").html($("#view-cars").html())
+      $(".container-fluid").html($("#view-cars").html());
       loadCarList();
    } else if (view === "sign-up") {
-      $(".container-fluid").html($("#view-sign-up").html())
+      $(".container-fluid").html($("#view-sign-up").html());
    } else if (view === "login") {
-      $(".container-fluid").html($("#view-login").html())
+      $(".container-fluid").html($("#view-login").html());
+   } else if (view === "logout") {
+      sessionStorage.removeItem('auth');
+      $(".container-fluid").html($("#view-login").html());
+      $(".login-link, .sign-up-link, .cars-link, .logout-link").toggleClass("d-none");
+      alert("Du är utloggad");
    }
 });
 
@@ -251,7 +368,6 @@ $(document).on("click", ".save-edit-button", function (e) {
          user_list.forEach(user => {
             if (user.name == input_user) {
                input_user_id = user.id
-               console.log("match cust")
             }
          });
 
@@ -283,6 +399,16 @@ $(document).on("click", ".delete-button", function (e) {
    deleteCar(carId)
 });
 
+$(document).on("click", ".book-button", function (e) {
+   var carId = Number(this.id.slice(10))
+   bookCar(carId)
+});
+
+$(document).on("click", ".unbook-button", function (e) {
+   var carId = Number(this.id.slice(12))
+   unbookCar(carId)
+});
+
 $(document).on("click", ".sign-up-button", function (e) {
    const name = $("#name").val()
    const email = $("#email").val()
@@ -300,7 +426,6 @@ $(document).on("click", ".sign-up-button", function (e) {
    signUp(new_user);
 });
 
-
 $(document).on("click", ".login-button", function (e) {
    const email = $("#email").val()
    const password = $("#password").val()
@@ -313,7 +438,6 @@ $(document).on("click", ".login-button", function (e) {
    login(email, password);
 });
 
-
 function getUserFromId(id) {
    return user_list.find(user => user.id == id);
 }
@@ -325,17 +449,32 @@ function getCarFromId(id) {
 
 function loadCarList(carId = 0) {
    $("#show-cars").empty()
+
+   const is_admin = JSON.parse(sessionStorage.getItem('auth')).user.is_admin
+   let shown_for_admin = 'd-none';
+   if (is_admin) {
+      shown_for_admin = '';
+   }
+
    var car_num = 1
    car_list.forEach(car => {
       const car_owner = car.user?.name ?? "No user";
+      const is_booked = car.user?.name !== undefined;
+
+      const shown_book_button = is_booked ? 'd-none' : '';
+      const show_book_text = is_booked ? '' : 'd-none';
+      const shown_unbook_button = is_booked && JSON.parse(sessionStorage.getItem('auth')).user.id == car.user.id ? '' : 'd-none';
+
       const carHtml = `
          <div>
             <p><strong>Car ${car_num}</strong></p>
             <p>Make: ${car.make}</p>
             <p>Model: ${car.model}</p>
-            <p>User: ${car_owner}</p>
-            <button id="editButton${car.id}" class="edit-button" data-toggle="modal" data-target="#editModal">EDIT</button>
-            <button id="deleteButton${car.id}" class="delete-button">DELETE</button>
+            <p class="${show_book_text}">Booked by: ${car_owner}</p>
+            <button id="editButton${car.id}" class="edit-button ${shown_for_admin}" data-toggle="modal" data-target="#editModal">EDIT</button>
+            <button id="deleteButton${car.id}" class="delete-button ${shown_for_admin}">DELETE</button>
+            <button id="bookButton${car.id}" class="book-button ${shown_book_button}">BOOK</button>
+            <button id="unbookButton${car.id}" class="unbook-button ${shown_unbook_button}">UNBOOK</button>
             <br><br>
       `;
       $('#show-cars').append(carHtml);
