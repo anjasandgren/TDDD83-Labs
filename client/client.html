@@ -10,14 +10,23 @@
             <li class="nav-item active">
                 <a class="nav-link" data-view="home" href="#">Home<span class="sr-only">(current)</span></a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item opening-link">
                 <a class="nav-link" data-view="opening-hours" href="#">Opening Hours</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item cars-link d-none">
                 <a class="nav-link" data-view="cars" href="#">Cars</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item contact-link">
                 <a class="nav-link" data-view="contact" href="#">Contact</a>
+            </li>
+            <li class="nav-item sign-up-link">
+                <a class="nav-link" data-view="sign-up" href="#">Sign Up</a>
+            </li>
+            <li class="nav-item login-link">
+                <a class="nav-link" data-view="login" href="#">Log In</a>
+            </li>
+            <li class="nav-item logout-link d-none">
+                <a class="nav-link" data-view="logout" href="#">Log Out</a>
             </li>
         </ul>
     </nav>
@@ -28,24 +37,23 @@
     </script>
 
     <script id="view-opening-hours" type="text/html">
-        <div class="big-light-centered-box">
-            <h1 class="box-title">Öppettider</h1>
+        <div style="height: 300px;" class="big-light-centered-box">
+            <h1 class="box-title">Opening Hours</h1>
             <div class="opening-hours">
-                <p class="box-text">Måndag-Fredag</p>
+                <p class="box-text">Monday-Friday</p>
                 <p class="box-text">10-18</p>
             </div>
             <div class="opening-hours">
-                <p class="box-text">Lördag-Söndag</p>
+                <p class="box-text">Saturday-Sunday</p>
                 <p class="box-text">10-15</p>
             </div>
         </div>
     </script>
 
     <script id="view-cars" type="text/html">
-        <div style="height: 550px;" class="big-light-centered-box">
+        <div style="height: 100%;" class="big-light-centered-box">
             <h2>Cars</h2>
             <div style="display: flex;"> 
-                <button style="margin:auto;" class="update-list">REFRESH</button>
                 <button style="margin:auto;" class="add-car" data-toggle="modal" data-target="#addModal">ADD</button>
             </div>
             <div id="show-cars">
@@ -77,15 +85,53 @@
         </div>
     </script>
 
+    <script id="view-sign-up" type="text/html">
+        <div  style="height: 380px;" class="big-light-centered-box" >
+            <h1 class="contact-header">Sign Up</h1>
+            <div style="display: flex; width: 100%; justify-content: center;">
+                <div class="sign-up-form">
+                    <br>
+                    <lable for="name">Name:</lable>
+                    <input type="text" id="name" name="name" placeholder="Write your name here">
+                    <br><br>
+                    <lable for="email">Email:</lable>
+                    <input type="text" id="email" name="email" placeholder="Write your email here">
+                    <br><br>
+                    <lable for="password">Password:</lable>
+                    <input type="text" id="password" name="password" placeholder="Write your password here">
+                    <br><br>
+                    <button class="sign-up-button">SIGN UP</button>
+                    <br><br>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script id="view-login" type="text/html">
+        <div style="height: 330px;" class="big-light-centered-box" >
+            <h1 class="contact-header">Login</h1>
+            <div style="display: flex; width: 100%; justify-content: center;">
+                <div class="sign-up-form">
+                    <br>
+                    <lable for="email">Email:</lable>
+                    <input type="text" id="email" name="email" placeholder="Write your email here">
+                    <br><br>
+                    <lable for="password">Password:</lable>
+                    <input type="text" id="password" name="password" placeholder="Write your password here">
+                    <br><br>
+                    <button class="login-button">LOGIN</button>
+                    <br><br>
+                </div>
+            </div>
+        </div>
+    </script>
+
     <div class="container-fluid"></div>
 
     <script
         src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
         crossorigin="anonymous">
-    </script>
-    <script 
-        src="server-stub.js">
     </script>
     <script
         src="client.js">

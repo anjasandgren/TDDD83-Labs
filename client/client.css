@@ -53,6 +53,13 @@
     text-align:center;
 }
 
+.sign-up-form {
+    width: 60%;
+    background-color: white;
+    border-radius: 20px;
+    text-align:center;
+}
+
 .send-button {
     background-color: lightblue;
 }
